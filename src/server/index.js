@@ -44,7 +44,7 @@ export default class Socket {
       message: [
         payload => {
           if (this._chatStatus !== 'assigned') {
-            this._emit('error', {
+            this.emit('error', {
               reason: `'${payload.sender}' attempted to send message, but chat is not active.`
             });
             return;
@@ -64,7 +64,7 @@ export default class Socket {
     if (!organizationId) {
       delay(() => {
         debug('Failed to connect.');
-        this._emit('error', { reason: 'API Key is invalid.' });
+        this.emit('error', { reason: 'API Key is invalid.' });
       });
       return;
     }
@@ -74,7 +74,7 @@ export default class Socket {
         `Connected to '${this.url}', organization id ${organizationId} with params %O`,
         this.params
       );
-      this._emit('connected');
+      this.emit('connected');
 
       this._assign(organizationId);
     });
@@ -82,16 +82,16 @@ export default class Socket {
 
   _assign(organizationId) {
     if (orgs[organizationId].isUnavailable) {
-      this._emit('chat-status', { status: 'unavailable' });
+      this.emit('chat-status', { status: 'unavailable' });
       return;
     }
 
-    this._emit('chat-status', { status: 'assigning' });
+    this.emit('chat-status', { status: 'assigning' });
     const operator = findBestOperator(organizationId);
-    this._emit('chat-status', { status: 'assigned', operator });
+    this.emit('chat-status', { status: 'assigned', operator });
   }
 
-  _emit(eventName, params) {
+  emit(eventName, params) {
     if (this._events[eventName]) {
       this._events[eventName].forEach(callback => callback(params));
     }
