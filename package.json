@@ -17,7 +17,10 @@
     "@vue/cli-service": "^4.0.0",
     "babel-eslint": "^10.0.3",
     "eslint": "^5.16.0",
+    "eslint-config-prettier": "^6.5.0",
+    "eslint-plugin-prettier-vue": "^2.0.2",
     "eslint-plugin-vue": "^5.0.0",
+    "prettier": "^1.18.2",
     "vue-template-compiler": "^2.6.10"
   },
   "eslintConfig": {
@@ -27,16 +30,20 @@
     },
     "extends": [
       "plugin:vue/essential",
-      "eslint:recommended"
+      "eslint:recommended",
+      "prettier/vue",
+      "plugin:prettier-vue/recommended"
     ],
     "rules": {
       "no-console": "warn",
-      "no-debugger": "warn",
-      "quotes": ["error", "single"]
+      "no-debugger": "warn"
     },
     "parserOptions": {
       "parser": "babel-eslint"
     }
+  },
+  "prettier": {
+    "singleQuote": true
   },
   "postcss": {
     "plugins": {
