@@ -6,11 +6,11 @@ const debug = Debug('hc:server');
 const orgs = {
   1: {
     isUnavailable: false,
-    operators: { 1: { name: 'Operator 1' } }
-  }
+    operators: { 1: { name: 'Operator 1' } },
+  },
 };
 const apiKeys = {
-  'org-1-api-key-1': { organizationId: 1 }
+  'org-1-api-key-1': { organizationId: 1 },
 };
 
 function authenticate(key) {
@@ -45,15 +45,15 @@ export default class Socket {
         payload => {
           if (this._chatStatus !== 'assigned') {
             this.emit('error', {
-              reason: `'${payload.sender}' attempted to send message, but chat is not active.`
+              reason: `'${payload.sender}' attempted to send message, but chat is not active.`,
             });
             return;
           }
 
           debug('Message received: %o', payload);
-        }
+        },
       ],
-      'chat-status': [event => (this._chatStatus = event.status)]
+      'chat-status': [event => (this._chatStatus = event.status)],
     };
   }
 

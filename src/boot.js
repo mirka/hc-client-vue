@@ -8,7 +8,7 @@ export default function boot() {
   const socket = Socket({
     url: '/server-url',
     apiKey: 'org-1-api-key-1',
-    customerToken: 'customer-token'
+    customerToken: 'customer-token',
   });
 
   socket.on('connected', () => {

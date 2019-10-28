@@ -40,6 +40,6 @@ export default function({ url, ...config }) {
     offCustomEvent: (eventName, callback) =>
       off('custom-' + eventName, callback),
     sendCustomEvent: (eventName, callback) =>
-      on('custom-' + eventName, callback)
+      on('custom-' + eventName, callback),
   };
 }
