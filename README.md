@@ -1,5 +1,14 @@
 # hc-client-vue
 
+## Try it now
+
+[Live demo](https://hc-client-vue.mirka.now.sh/)
+
+#### See `debug` logs in dev console
+```
+localStorage.debug="hc:*"
+```
+
 ## Project setup
 ```
 npm install
@@ -9,12 +18,6 @@ npm install
 ```
 npm run serve
 ```
-
-#### See `debug` logs in dev console
-```
-localStorage.debug="hc:*"
-```
-
 
 ### Lints and fixes files
 ```
