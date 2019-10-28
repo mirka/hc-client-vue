@@ -10,10 +10,11 @@ npm install
 npm run serve
 ```
 
-### Compiles and minifies for production
+#### See `debug` logs in dev console
 ```
-npm run build
+localStorage.debug="hc:*"
 ```
+
 
 ### Lints and fixes files
 ```

@@ -7,6 +7,9 @@
 
 <script>
 import HelloWorld from './components/HelloWorld.vue'
+import boot from './boot';
+
+boot();
 
 export default {
   name: 'app',
