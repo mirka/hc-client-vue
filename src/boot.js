@@ -25,7 +25,6 @@ export default function boot() {
         socket.sendMessage({
           sender: 'customer',
           text: 'hi',
-          timestamp: Date.now()
         });
         break;
 

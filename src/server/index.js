@@ -91,13 +91,16 @@ export default class Socket {
     this.emit('chat-status', { status: 'assigned', operator });
   }
 
-  emit(eventName, params) {
+  emit(eventName, payload) {
+    // Add timestamp if it doesn't exist yet
+    const timestampedPayload = { _timestamp: Date.now(), ...payload };
+
     if (this._events[eventName]) {
-      this._events[eventName].forEach(callback => callback(params));
+      this._events[eventName].forEach(callback => callback(timestampedPayload));
     }
 
     if (this.handleEvent) {
-      this.handleEvent(eventName, params);
+      this.handleEvent(eventName, timestampedPayload);
     }
   }
 }

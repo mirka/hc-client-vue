@@ -24,6 +24,10 @@ export default function({ url, ...config }) {
     }
   };
 
+  const sendWithTimestamp = (eventName, payload) => {
+    socket.emit(eventName, { ...payload, _timestamp: Date.now() });
+  };
+
   debug('Initialized');
 
   return {
@@ -31,11 +35,11 @@ export default function({ url, ...config }) {
     on,
     off,
     onMessage: callback => on('message', callback),
-    sendMessage: payload => socket.emit('message', payload),
+    sendMessage: payload => sendWithTimestamp('message', payload),
     offMessage: callback => off('message', callback),
     onChatStatus: callback => on('chat-status', callback),
     offChatStatus: callback => off('chat-status', callback),
-    sendChatStatus: event => socket.emit('chat-status', event),
+    sendChatStatus: event => sendWithTimestamp('chat-status', event),
     onCustomEvent: (eventName, callback) => on('custom-' + eventName, callback),
     offCustomEvent: (eventName, callback) =>
       off('custom-' + eventName, callback),
