@@ -42,6 +42,7 @@ export default function boot() {
     if (payload.sender === 'operator') {
       debug('Message received: %o', payload);
     }
+    actions.addToTimeline(payload);
   });
 
   socket.connect();

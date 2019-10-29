@@ -50,7 +50,9 @@ export default class Socket {
             return;
           }
 
-          debug('Message received: %o', payload);
+          if (payload.sender === 'customer') {
+            debug('Message received: %o', payload);
+          }
         },
       ],
       'chat-status': [event => (this._chatStatus = event.status)],
@@ -93,7 +95,7 @@ export default class Socket {
 
   emit(eventName, payload) {
     // Add timestamp if it doesn't exist yet
-    const timestampedPayload = { _timestamp: Date.now(), ...payload };
+    const timestampedPayload = { timestamp: Date.now(), ...payload };
 
     if (this._events[eventName]) {
       this._events[eventName].forEach(callback => callback(timestampedPayload));

@@ -25,7 +25,7 @@ export default function({ url, ...config }) {
   };
 
   const sendWithTimestamp = (eventName, payload) => {
-    socket.emit(eventName, { ...payload, _timestamp: Date.now() });
+    socket.emit(eventName, { ...payload, timestamp: Date.now() });
   };
 
   debug('Initialized');

@@ -2,7 +2,9 @@
   <v-app>
     <v-content>
       <div class="wrapper">
-        <div style="flex: 1 0 auto;">// Messages</div>
+        <div style="flex: 1 0 auto;">
+          <timeline v-bind:items="timeline" />
+        </div>
         <div>
           <chat-input @send-message="sendMessage" />
         </div>
@@ -15,13 +17,17 @@
 <script>
 import ChatInput from './components/ChatInput.vue';
 import ErrorSnackbar from './components/ErrorSnackbar';
+import Timeline from './components/Timeline.vue';
+import { state } from './store';
 import boot from './boot';
 
 const { sendMessage } = boot();
 
 export default {
   name: 'App',
+  data: () => state,
   components: {
+    timeline: Timeline,
     'chat-input': ChatInput,
     'error-snackbar': ErrorSnackbar,
   },
