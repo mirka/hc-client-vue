@@ -27,8 +27,8 @@ export default function boot() {
         debug(`Assigned operator: ${event.operator.name}`);
 
         socket.sendMessage({
-          sender: 'customer',
-          text: 'hi',
+          sender: 'operator',
+          text: 'hi there',
         });
         break;
 
@@ -45,4 +45,13 @@ export default function boot() {
   });
 
   socket.connect();
+
+  return {
+    sendMessage: text => {
+      socket.sendMessage({
+        sender: 'customer',
+        text,
+      });
+    },
+  };
 }
