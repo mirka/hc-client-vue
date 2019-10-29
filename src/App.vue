@@ -1,39 +1,21 @@
 <template>
   <v-app>
-    <v-app-bar app>
-      <v-toolbar-title class="headline text-uppercase">
-        <span>Vuetify</span>
-        <span class="font-weight-light">MATERIAL DESIGN</span>
-      </v-toolbar-title>
-      <v-spacer></v-spacer>
-import HelloWorld from './components/HelloWorld.vue';
-import boot from './boot';
-
-      <v-btn
-        text
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-      >
-        <span class="mr-2">Latest Release</span>
-      </v-btn>
-    </v-app-bar>
-
     <v-content>
-      <HelloWorld />
+      <error-snackbar />
     </v-content>
   </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld';
+import ErrorSnackbar from './components/ErrorSnackbar';
+import boot from './boot';
+
+boot();
 
 export default {
   name: 'App',
   components: {
-    HelloWorld,
+    'error-snackbar': ErrorSnackbar,
   },
-  data: () => ({
-    //
-  }),
 };
 </script>

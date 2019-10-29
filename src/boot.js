@@ -1,6 +1,7 @@
 import Debug from 'debug';
 
 import Socket from './client';
+import { actions } from './store';
 
 const debug = Debug('hc:frontend');
 
@@ -15,7 +16,10 @@ export default function boot() {
     debug('Connected');
   });
 
-  socket.on('error', ({ reason }) => debug('Error: ' + reason));
+  socket.on('error', ({ reason }) => {
+    debug('Error: ' + reason);
+    actions.setError(reason);
+  });
 
   socket.onChatStatus(event => {
     switch (event.status) {
