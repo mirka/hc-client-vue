@@ -8,11 +8,11 @@ export default function({ url, ...config }) {
   const socket = new Socket(url || '/', config);
   const events = {};
 
-  const on = (eventName, callback) => {
+  const addListener = (eventName, callback) => {
     const existingCallbacks = events[eventName] || [];
     events[eventName] = [...existingCallbacks, callback];
   };
-  const off = (eventName, callback) => {
+  const removeListener = (eventName, callback) => {
     events[eventName] = events[eventName].filter(
       existingCallback => existingCallback !== callback
     );
@@ -32,18 +32,20 @@ export default function({ url, ...config }) {
 
   return {
     connect: () => socket.connect(),
-    on,
-    off,
-    onMessage: callback => on('message', callback),
+    addConnectionStatusListener: addListener,
+    removeConnectionStatusListener: removeListener,
+    addMessageListener: callback => addListener('message', callback),
     sendMessage: payload => sendWithTimestamp('message', payload),
-    offMessage: callback => off('message', callback),
-    onChatStatus: callback => on('chat-status', callback),
-    offChatStatus: callback => off('chat-status', callback),
+    removeMessageListener: callback => removeListener('message', callback),
+    addChatStatusListener: callback => addListener('chat-status', callback),
+    removeChatStatusListener: callback =>
+      removeListener('chat-status', callback),
     sendChatStatus: event => sendWithTimestamp('chat-status', event),
-    onCustomEvent: (eventName, callback) => on('custom-' + eventName, callback),
-    offCustomEvent: (eventName, callback) =>
-      off('custom-' + eventName, callback),
+    addCustomEventListener: (eventName, callback) =>
+      addListener('custom-' + eventName, callback),
+    removeCustomEventListener: (eventName, callback) =>
+      removeListener('custom-' + eventName, callback),
     sendCustomEvent: (eventName, callback) =>
-      on('custom-' + eventName, callback),
+      addListener('custom-' + eventName, callback),
   };
 }

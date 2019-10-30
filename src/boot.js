@@ -12,16 +12,16 @@ export default function boot() {
     customerToken: 'customer-token',
   });
 
-  socket.on('connected', () => {
+  socket.addConnectionStatusListener('connected', () => {
     debug('Connected');
   });
 
-  socket.on('error', ({ reason }) => {
+  socket.addConnectionStatusListener('error', ({ reason }) => {
     debug('Error: ' + reason);
     actions.setError(reason);
   });
 
-  socket.onChatStatus(event => {
+  socket.addChatStatusListener(event => {
     switch (event.status) {
       case 'assigned':
         debug(`Assigned operator: ${event.operator.name}`);
@@ -38,7 +38,7 @@ export default function boot() {
     }
   });
 
-  socket.onMessage(payload => {
+  socket.addMessageListener(payload => {
     if (payload.sender === 'operator') {
       debug('Message received: %o', payload);
     }
