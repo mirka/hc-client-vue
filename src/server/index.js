@@ -44,8 +44,10 @@ export default class Socket {
       message: [
         payload => {
           if (this._chatStatus !== 'assigned') {
-            this.emit('error', {
+            this.emit('connection-status', {
+              eventType: 'connection-status',
               reason: `'${payload.sender}' attempted to send message, but chat is not active.`,
+              status: 'error',
             });
             return;
           }
@@ -54,6 +56,7 @@ export default class Socket {
             debug('Message received: %o', payload);
             window.setTimeout(() => {
               this.emit('message', {
+                eventType: 'message',
                 sender: 'operator',
                 text: payload.text + '?',
               });
@@ -72,7 +75,11 @@ export default class Socket {
     if (!organizationId) {
       delay(() => {
         debug('Failed to connect.');
-        this.emit('error', { reason: 'API Key is invalid.' });
+        this.emit('connection-status', {
+          eventType: 'connection-status',
+          reason: 'API Key is invalid.',
+          status: 'error',
+        });
       });
       return;
     }
@@ -82,7 +89,10 @@ export default class Socket {
         `Connected to '${this.url}', organization id ${organizationId} with params %O`,
         this.params
       );
-      this.emit('connected');
+      this.emit('connection-status', {
+        eventType: 'connection-status',
+        status: 'connected',
+      });
 
       this._assign(organizationId);
     });
@@ -90,14 +100,25 @@ export default class Socket {
 
   _assign(organizationId) {
     if (orgs[organizationId].isUnavailable) {
-      this.emit('chat-status', { status: 'unavailable' });
+      this.emit('chat-status', {
+        eventType: 'chat-status',
+        status: 'unavailable',
+      });
       return;
     }
 
-    this.emit('chat-status', { status: 'assigning' });
+    this.emit('chat-status', { eventType: 'chat-status', status: 'assigning' });
     const operator = findBestOperator(organizationId);
-    this.emit('chat-status', { status: 'assigned', operator });
-    this.emit('message', { sender: 'operator', text: 'Hi there!' });
+    this.emit('chat-status', {
+      eventType: 'chat-status',
+      status: 'assigned',
+      operator,
+    });
+    this.emit('message', {
+      eventType: 'message',
+      sender: 'operator',
+      text: 'Hi there!',
+    });
   }
 
   emit(eventName, payload) {

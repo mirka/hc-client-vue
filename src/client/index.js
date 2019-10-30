@@ -32,20 +32,24 @@ export default function({ url, ...config }) {
 
   return {
     connect: () => socket.connect(),
-    addConnectionStatusListener: addListener,
-    removeConnectionStatusListener: removeListener,
+    addConnectionStatusListener: callback =>
+      addListener('connection-status', callback),
+    removeConnectionStatusListener: callback =>
+      removeListener('connection-status', callback),
     addMessageListener: callback => addListener('message', callback),
-    sendMessage: payload => sendWithTimestamp('message', payload),
+    sendMessage: payload =>
+      sendWithTimestamp('message', { ...payload, eventType: 'message' }),
     removeMessageListener: callback => removeListener('message', callback),
     addChatStatusListener: callback => addListener('chat-status', callback),
     removeChatStatusListener: callback =>
       removeListener('chat-status', callback),
-    sendChatStatus: event => sendWithTimestamp('chat-status', event),
+    sendChatStatus: event =>
+      sendWithTimestamp('chat-status', { ...event, eventType: 'chat-status' }),
     addCustomEventListener: (eventName, callback) =>
       addListener('custom-' + eventName, callback),
     removeCustomEventListener: (eventName, callback) =>
       removeListener('custom-' + eventName, callback),
     sendCustomEvent: (eventName, callback) =>
-      addListener('custom-' + eventName, callback),
+      sendWithTimestamp('custom-' + eventName, callback),
   };
 }

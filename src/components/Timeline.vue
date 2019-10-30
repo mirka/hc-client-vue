@@ -1,21 +1,21 @@
 <template>
   <div>
-    <chat-bubble
-      v-for="message in items"
-      v-bind:key="message.timestamp"
-      v-bind:text="message.text"
-      v-bind:sender="message.sender.toUpperCase()"
-      v-bind:time="getTime(message.timestamp)"
+    <timeline-bubble
+      v-for="item in items"
+      v-bind:key="item.eventType + item.timestamp"
+      v-bind:text="item.text"
+      v-bind:sender="item.sender.toUpperCase()"
+      v-bind:time="getTime(item.timestamp)"
     />
   </div>
 </template>
 
 <script>
-import ChatBubble from './ChatBubble.vue';
+import TimelineBubble from './TimelineBubble.vue';
 
 export default {
   components: {
-    'chat-bubble': ChatBubble,
+    'timeline-bubble': TimelineBubble,
   },
   props: ['items'],
   methods: {

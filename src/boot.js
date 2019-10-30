@@ -12,32 +12,46 @@ export default function boot() {
     customerToken: 'customer-token',
   });
 
-  socket.addConnectionStatusListener('connected', () => {
-    debug('Connected');
-  });
+  socket.addConnectionStatusListener(event => {
+    let text;
 
-  socket.addConnectionStatusListener('error', ({ reason }) => {
-    debug('Error: ' + reason);
-    actions.setError(reason);
+    switch (event.status) {
+      case 'connected':
+        text = 'Connected';
+        break;
+      case 'error':
+        text = 'Error: ' + event.reason;
+        actions.setError(event.reason);
+    }
+
+    actions.addToTimeline({ ...event, text, sender: 'connection' });
+    debug(text);
   });
 
   socket.addChatStatusListener(event => {
-    switch (event.status) {
-      case 'assigned':
-        debug(`Assigned operator: ${event.operator.name}`);
-        break;
+    let text;
 
+    switch (event.status) {
+      case 'assigning':
+        text = 'Assigning operator...';
+        break;
+      case 'assigned':
+        text = `Assigned operator: ${event.operator.name}`;
+        break;
       case 'unavailable':
-        debug('Chat is currently unavailable.');
+        text = 'Chat is currently unavailable.';
         break;
     }
+
+    actions.addToTimeline({ ...event, text, sender: 'chat' });
+    debug(text);
   });
 
-  socket.addMessageListener(payload => {
-    if (payload.sender === 'operator') {
-      debug('Message received: %o', payload);
+  socket.addMessageListener(event => {
+    if (event.sender === 'operator') {
+      debug('Message received: %o', event);
     }
-    actions.addToTimeline(payload);
+    actions.addToTimeline(event);
   });
 
   socket.connect();
