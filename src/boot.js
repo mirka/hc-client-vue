@@ -25,11 +25,6 @@ export default function boot() {
     switch (event.status) {
       case 'assigned':
         debug(`Assigned operator: ${event.operator.name}`);
-
-        socket.sendMessage({
-          sender: 'operator',
-          text: 'hi there',
-        });
         break;
 
       case 'unavailable':

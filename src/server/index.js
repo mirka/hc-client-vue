@@ -52,6 +52,12 @@ export default class Socket {
 
           if (payload.sender === 'customer') {
             debug('Message received: %o', payload);
+            window.setTimeout(() => {
+              this.emit('message', {
+                sender: 'operator',
+                text: payload.text + '?',
+              });
+            }, 1000);
           }
         },
       ],
@@ -91,18 +97,19 @@ export default class Socket {
     this.emit('chat-status', { status: 'assigning' });
     const operator = findBestOperator(organizationId);
     this.emit('chat-status', { status: 'assigned', operator });
+    this.emit('message', { sender: 'operator', text: 'Hi there!' });
   }
 
   emit(eventName, payload) {
     // Add timestamp if it doesn't exist yet
     const timestampedPayload = { timestamp: Date.now(), ...payload };
 
-    if (this._events[eventName]) {
-      this._events[eventName].forEach(callback => callback(timestampedPayload));
-    }
-
     if (this.handleEvent) {
       this.handleEvent(eventName, timestampedPayload);
+    }
+
+    if (this._events[eventName]) {
+      this._events[eventName].forEach(callback => callback(timestampedPayload));
     }
   }
 }
