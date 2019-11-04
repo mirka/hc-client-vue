@@ -1,5 +1,6 @@
 import { get } from 'lodash';
 import Debug from 'debug';
+import uuid from 'uuid/v4';
 
 const debug = Debug('hc:server');
 
@@ -139,15 +140,19 @@ export default class Socket {
   }
 
   emit(eventName, payload) {
-    // Add timestamp if it doesn't exist yet
-    const timestampedPayload = { timestamp: Date.now(), ...payload };
+    // Add timestamp and uuid if they don't exist yet
+    const completePayload = {
+      timestamp: Date.now(),
+      uuid: uuid(),
+      ...payload,
+    };
 
     if (this.handleEvent) {
-      this.handleEvent(eventName, timestampedPayload);
+      this.handleEvent(eventName, completePayload);
     }
 
     if (this._events[eventName]) {
-      this._events[eventName].forEach(callback => callback(timestampedPayload));
+      this._events[eventName].forEach(callback => callback(completePayload));
     }
   }
 }

@@ -1,4 +1,5 @@
 import Debug from 'debug';
+import uuid from 'uuid/v4';
 
 import Socket from '../server';
 
@@ -24,8 +25,8 @@ export default function({ url, ...config }) {
     }
   };
 
-  const sendWithTimestamp = (eventName, payload) => {
-    socket.emit(eventName, { ...payload, timestamp: Date.now() });
+  const sendWithMetadata = (eventName, payload) => {
+    socket.emit(eventName, { ...payload, timestamp: Date.now(), uuid: uuid() });
   };
 
   debug('Initialized');
@@ -38,18 +39,18 @@ export default function({ url, ...config }) {
       removeListener('connection-status', callback),
     addMessageListener: callback => addListener('message', callback),
     sendMessage: payload =>
-      sendWithTimestamp('message', { ...payload, eventType: 'message' }),
+      sendWithMetadata('message', { ...payload, eventType: 'message' }),
     removeMessageListener: callback => removeListener('message', callback),
     addChatStatusListener: callback => addListener('chat-status', callback),
     removeChatStatusListener: callback =>
       removeListener('chat-status', callback),
     sendChatStatus: event =>
-      sendWithTimestamp('chat-status', { ...event, eventType: 'chat-status' }),
+      sendWithMetadata('chat-status', { ...event, eventType: 'chat-status' }),
     addCustomEventListener: (eventName, callback) =>
       addListener('custom-' + eventName, callback),
     removeCustomEventListener: (eventName, callback) =>
       removeListener('custom-' + eventName, callback),
     sendCustomEvent: (eventName, callback) =>
-      sendWithTimestamp('custom-' + eventName, callback),
+      sendWithMetadata('custom-' + eventName, callback),
   };
 }

@@ -2,7 +2,7 @@
   <div>
     <timeline-bubble
       v-for="item in items"
-      v-bind:key="item.eventType + item.timestamp"
+      v-bind:key="item.uuid"
       v-bind:text="item.text"
       v-bind:sender="item.sender.toUpperCase()"
       v-bind:time="getTime(item.timestamp)"
