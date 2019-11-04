@@ -6,7 +6,11 @@
           <timeline v-bind:items="timeline" />
         </div>
         <div>
-          <chat-input @send-message="sendMessage" />
+          <chat-input
+            @emit-typing-event="emitCustomerTyping"
+            @send-message="sendMessage"
+            v-bind:operatorIsTyping="operatorIsTyping"
+          />
         </div>
       </div>
       <error-snackbar />
@@ -21,7 +25,7 @@ import Timeline from './components/Timeline.vue';
 import { state } from './store';
 import boot from './boot';
 
-const { sendMessage } = boot();
+const { emitCustomerTyping, sendMessage } = boot();
 
 export default {
   name: 'App',
@@ -32,6 +36,7 @@ export default {
     'error-snackbar': ErrorSnackbar,
   },
   methods: {
+    emitCustomerTyping,
     sendMessage,
   },
 };

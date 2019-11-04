@@ -32,6 +32,12 @@ export default function boot() {
     let text;
 
     switch (event.status) {
+      case 'customer-is-typing':
+        return;
+      case 'operator-is-typing':
+        debug('Operator is typing...');
+        actions.setOperatorIsTyping();
+        return;
       case 'assigning':
         text = 'Assigning operator...';
         break;
@@ -57,6 +63,9 @@ export default function boot() {
   socket.connect();
 
   return {
+    emitCustomerTyping: () => {
+      socket.sendChatStatus({ status: 'customer-is-typing' });
+    },
     sendMessage: text => {
       socket.sendMessage({
         sender: 'customer',

@@ -55,16 +55,23 @@ export default class Socket {
           if (payload.sender === 'customer') {
             debug('Message received: %o', payload);
             window.setTimeout(() => {
-              this.emit('message', {
-                eventType: 'message',
-                sender: 'operator',
-                text: payload.text + '?',
-              });
-            }, 1000);
+              this._simulateMessage(`${payload.text}?`);
+            }, 500);
           }
         },
       ],
-      'chat-status': [event => (this._chatStatus = event.status)],
+      'chat-status': [
+        event => {
+          if (event.status === 'operator-is-typing') {
+            return;
+          }
+          if (event.status === 'customer-is-typing') {
+            debug('Customer is typing...');
+            return;
+          }
+          this._chatStatus = event.status;
+        },
+      ],
     };
   }
 
@@ -114,11 +121,21 @@ export default class Socket {
       status: 'assigned',
       operator,
     });
-    this.emit('message', {
-      eventType: 'message',
-      sender: 'operator',
-      text: 'Hi there!',
+    this._simulateMessage('Hi there!');
+  }
+
+  _simulateMessage(text) {
+    this.emit('chat-status', {
+      eventType: 'chat-status',
+      status: 'operator-is-typing',
     });
+    window.setTimeout(() => {
+      this.emit('message', {
+        eventType: 'message',
+        sender: 'operator',
+        text,
+      });
+    }, 1500);
   }
 
   emit(eventName, payload) {
