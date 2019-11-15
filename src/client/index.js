@@ -1,71 +1,111 @@
 import Debug from 'debug';
-import uuid from 'uuid/v4';
+
+import { Observable, Notifier } from '../lib/notifier-interface';
+import { createMessageId, createTimestamp } from '../lib/transport-api';
 
 import Socket from '../server';
 
 const debug = Debug('hc:client');
 
-export default function({ url, ...config }) {
-  const socket = new Socket(url || '/', config);
-  const events = {};
-  const unacknowledgedEvents = {};
+const socketKey = Symbol('socket');
+const senderKey = Symbol('sendWithMetadata');
 
-  const addListener = (eventName, callback) => {
-    const existingCallbacks = events[eventName] || [];
-    events[eventName] = [...existingCallbacks, callback];
-  };
-  const removeListener = (eventName, callback) => {
-    events[eventName] = events[eventName].filter(
-      existingCallback => existingCallback !== callback
-    );
-  };
+export default class Connection {
+  constructor({ url, ...config }) {
+    const unacknowledgedEvents = {};
 
-  socket.handleEvent = (eventName, params) => {
-    if (events[eventName]) {
-      events[eventName].forEach(callback => callback(params));
-    }
-  };
+    this[socketKey] = new Socket(url || '/', config);
+    this.connectionStatus = new Observable('disconnected');
+    this.chatStatus = new Observable('unassigned');
+    this.messageNotifier = new Notifier();
+    this.typingNotifier = new Notifier();
 
-  socket.onAcknowledge = (id, payload) => {
-    unacknowledgedEvents[id].resolve(payload);
-    delete unacknowledgedEvents[id];
-  };
-
-  const sendWithMetadata = (eventName, payload) => {
-    return new Promise(resolve => {
-      const id = uuid();
-      const data = { ...payload, timestamp: Date.now(), uuid: id };
-      socket.emit(eventName, data);
-      if (eventName === 'message') {
-        unacknowledgedEvents[id] = { eventName, data, resolve };
+    this[socketKey].handleEvent = (eventType, params) => {
+      switch (eventType) {
+        case 'connection-status':
+          this.connectionStatus.update(params);
+          break;
+        case 'chat-status':
+          this.chatStatus.update(params);
+          break;
+        case 'message':
+          this.messageNotifier.notify(params);
+          break;
+        case 'operator-is-typing':
+          this.typingNotifier.notify(params);
+          break;
       }
+    };
+
+    this[socketKey].onAcknowledge = (id, payload) => {
+      unacknowledgedEvents[id].resolve(payload);
+      delete unacknowledgedEvents[id];
+    };
+
+    this[senderKey] = (eventName, payload) => {
+      return new Promise(resolve => {
+        const id = createMessageId();
+        const data = { ...payload, timestamp: createTimestamp(), uuid: id };
+        this[socketKey].emit(eventName, data);
+        if (eventName === 'message') {
+          unacknowledgedEvents[id] = { eventName, data, resolve };
+        }
+      });
+    };
+
+    debug('Initialized');
+  }
+
+  connect() {
+    this.connectionStatus.update({ status: 'connecting' });
+    this[socketKey].connect();
+  }
+
+  addConnectionStatusListener(listener) {
+    this.connectionStatus.addListener(listener);
+  }
+
+  removeConnectionStatusListener(listener) {
+    this.connectionStatus.removeListener(listener);
+  }
+
+  getConnectionStatus() {
+    return this.connectionStatus.currentValue;
+  }
+
+  addMessageListener(listener) {
+    this.messageNotifier.addListener(listener);
+  }
+
+  removeMessageListener(listener) {
+    this.messageNotifier.removeListener(listener);
+  }
+
+  addChatStatusListener(listener) {
+    this.chatStatus.addListener(listener);
+  }
+
+  removeChatStatusListener(listener) {
+    this.chatStatus.removeListener(listener);
+  }
+
+  getChatStatus() {
+    return this.chatStatus.currentValue;
+  }
+
+  sendMessage(text) {
+    return this[senderKey]('message', {
+      text,
+      eventType: 'message',
+      sender: 'customer',
     });
-  };
+  }
 
-  debug('Initialized');
+  sendIsTyping() {
+    this[senderKey]('customer-is-typing');
+  }
 
-  return {
-    connect: () => socket.connect(),
-    addConnectionStatusListener: callback =>
-      addListener('connection-status', callback),
-    removeConnectionStatusListener: callback =>
-      removeListener('connection-status', callback),
-    addMessageListener: callback => addListener('message', callback),
-    sendMessage: payload =>
-      sendWithMetadata('message', { ...payload, eventType: 'message' }),
-    removeMessageListener: callback => removeListener('message', callback),
-    addChatStatusListener: callback => addListener('chat-status', callback),
-    removeChatStatusListener: callback =>
-      removeListener('chat-status', callback),
-    sendChatStatus: event =>
-      sendWithMetadata('chat-status', { ...event, eventType: 'chat-status' }),
-    addCustomEventListener: (eventName, callback) =>
-      addListener('custom-' + eventName, callback),
-    removeCustomEventListener: (eventName, callback) =>
-      removeListener('custom-' + eventName, callback),
-    sendCustomEvent: eventName => sendWithMetadata('custom-' + eventName),
-    sendIsTyping: () => sendWithMetadata('customer-is-typing'),
-    addOperatorIsTypingListener: callback =>
-      addListener('operator-is-typing', callback),
-  };
+  addOperatorIsTypingListener(listener) {
+    this.typingNotifier.addListener(listener);
+  }
 }

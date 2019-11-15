@@ -1,18 +1,19 @@
 import Debug from 'debug';
 
-import Socket from './client';
+import Connection from './client';
 import createConnection from './lib/happychat';
 import { actions } from './store';
 
 const debug = Debug('hc:frontend');
 
 export default function boot() {
-  const connection = createConnection(() =>
-    Socket({
-      url: '/server-url',
-      apiKey: 'org-1-api-key-1',
-      customerToken: 'customer-token',
-    })
+  const connection = createConnection(
+    () =>
+      new Connection({
+        url: '/server-url',
+        apiKey: 'org-1-api-key-1',
+        customerToken: 'customer-token',
+      })
   );
 
   connection.addConnectionStatusListener(event => {
@@ -58,14 +59,9 @@ export default function boot() {
       connection.sendIsTyping();
     },
     sendMessage: text => {
-      connection
-        .sendMessage({
-          sender: 'customer',
-          text,
-        })
-        .then(receipt => {
-          debug('Successfully sent message: ' + receipt.text);
-        });
+      connection.sendMessage(text).then(receipt => {
+        debug('Successfully sent message: ' + receipt.text);
+      });
     },
   };
 }
