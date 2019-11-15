@@ -1,43 +1,29 @@
 import Debug from 'debug';
 
 import Socket from './client';
+import createConnection from './lib/happychat';
 import { actions } from './store';
 
 const debug = Debug('hc:frontend');
 
 export default function boot() {
-  const socket = Socket({
-    url: '/server-url',
-    apiKey: 'org-1-api-key-1',
-    customerToken: 'customer-token',
+  const connection = createConnection(() =>
+    Socket({
+      url: '/server-url',
+      apiKey: 'org-1-api-key-1',
+      customerToken: 'customer-token',
+    })
+  );
+
+  connection.addConnectionStatusListener(event => {
+    actions.addToTimeline({ text: event.status, sender: 'connection' });
+    debug(status);
   });
 
-  socket.addConnectionStatusListener(event => {
+  connection.addChatStatusListener(event => {
     let text;
 
     switch (event.status) {
-      case 'connected':
-        text = 'Connected';
-        break;
-      case 'error':
-        text = 'Error: ' + event.reason;
-        actions.setError(event.reason);
-    }
-
-    actions.addToTimeline({ ...event, text, sender: 'connection' });
-    debug(text);
-  });
-
-  socket.addChatStatusListener(event => {
-    let text;
-
-    switch (event.status) {
-      case 'customer-is-typing':
-        return;
-      case 'operator-is-typing':
-        debug('Operator is typing...');
-        actions.setOperatorIsTyping();
-        return;
       case 'assigning':
         text = 'Assigning operator...';
         break;
@@ -53,24 +39,33 @@ export default function boot() {
     debug(text);
   });
 
-  socket.addMessageListener(event => {
+  connection.addMessageListener(event => {
     if (event.sender === 'operator') {
       debug('Message received: %o', event);
     }
     actions.addToTimeline(event);
   });
 
-  socket.connect();
+  connection.addOperatorIsTypingListener(() => {
+    debug('Operator is typing...');
+    actions.setOperatorIsTyping();
+  });
+
+  connection.connect();
 
   return {
     emitCustomerTyping: () => {
-      socket.sendChatStatus({ status: 'customer-is-typing' });
+      connection.sendIsTyping();
     },
     sendMessage: text => {
-      socket.sendMessage({
-        sender: 'customer',
-        text,
-      });
+      connection
+        .sendMessage({
+          sender: 'customer',
+          text,
+        })
+        .then(receipt => {
+          debug('Successfully sent message: ' + receipt.text);
+        });
     },
   };
 }

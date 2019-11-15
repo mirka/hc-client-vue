@@ -8,6 +8,7 @@ const debug = Debug('hc:client');
 export default function({ url, ...config }) {
   const socket = new Socket(url || '/', config);
   const events = {};
+  const unacknowledgedEvents = {};
 
   const addListener = (eventName, callback) => {
     const existingCallbacks = events[eventName] || [];
@@ -25,8 +26,20 @@ export default function({ url, ...config }) {
     }
   };
 
+  socket.onAcknowledge = (id, payload) => {
+    unacknowledgedEvents[id].resolve(payload);
+    delete unacknowledgedEvents[id];
+  };
+
   const sendWithMetadata = (eventName, payload) => {
-    socket.emit(eventName, { ...payload, timestamp: Date.now(), uuid: uuid() });
+    return new Promise(resolve => {
+      const id = uuid();
+      const data = { ...payload, timestamp: Date.now(), uuid: id };
+      socket.emit(eventName, data);
+      if (eventName === 'message') {
+        unacknowledgedEvents[id] = { eventName, data, resolve };
+      }
+    });
   };
 
   debug('Initialized');
@@ -50,7 +63,9 @@ export default function({ url, ...config }) {
       addListener('custom-' + eventName, callback),
     removeCustomEventListener: (eventName, callback) =>
       removeListener('custom-' + eventName, callback),
-    sendCustomEvent: (eventName, callback) =>
-      sendWithMetadata('custom-' + eventName, callback),
+    sendCustomEvent: eventName => sendWithMetadata('custom-' + eventName),
+    sendIsTyping: () => sendWithMetadata('customer-is-typing'),
+    addOperatorIsTypingListener: callback =>
+      addListener('operator-is-typing', callback),
   };
 }
